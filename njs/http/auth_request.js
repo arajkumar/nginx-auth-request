@@ -27,23 +27,19 @@ async function authValidate(r) {
       secretKey: keys[1]
     }
   };
-  const resp = await ngx.fetch('https://console.cloud.timescale.com/api/query',
+  const resp = await r.subrequest('/auth_handler',
     {
       method: "POST",
       body: JSON.stringify(authBody),
-      headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-      },
     });
-  if (!resp.ok) {
-    r.error(resp.ok + "," + resp.status);
+  if (resp.status >= 400) {
+    r.error("err," + resp.status);
     r.return(resp.status);
     return;
   }
-  const jsonResp = await resp.json();
+  const jsonResp = JSON.parse(resp.responseBody);
   if (jsonResp["errors"] != null) {
-    r.error(JSON.stringify(jsonResp));
+    r.error("err," + JSON.stringify(jsonResp));
     r.return(401);
     return;
   }
